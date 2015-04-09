@@ -1,21 +1,23 @@
 //Lets see if SDL Works 
 
-#include<iostream>
+#include "Globals.h"
+#include <iostream>
 #include <SDL.h>
 
 int main( int argc, char* args[] )
 {
   //When SDL cannot be initialized, it will return a value of -1
-  if( SDL_Init(SDL_INIT_EVERYTHING) == -1)
+  if( !InitSDL() )
   {
-    std::cout << "Could not initialize SDL: " << SDL_GetError() << std::endl;
+    std::cout << "Something is wrong with InitSDL()" << std::endl;
+    return -1;
   }
   
   else
   {
-    std::cout << "Success, commence the program!" <<std::endl;
+    Play();
   }
   
-  SDL_Quit();
+  Close();
   return 0;
 }
