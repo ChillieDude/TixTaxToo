@@ -1,6 +1,261 @@
-#include <SDL.h>
-#include <iostream>
 #include "Globals.h"
+
+
+/////////////////////////////////////
+////////  Load Game Content  ////////
+/////////////////////////////////////
+
+bool LoadContent()
+{
+    if(!theSpriteSheet.LoadImage("SpriteSheet.bmp") )
+    {
+        std::cout << "Oops" <<std::endl;
+        return false;
+    }
+    //This sprite sheet will read right left to right, sprite size being 100
+    for(int i = 0; i!= SPRITE_TOTAL; ++i )
+    {
+        tSprites[i].h = 100;
+        tSprites[i].w = 100;
+        tSprites[i].y = 0;
+        tSprites[i].x = i*100;
+    }
+
+    int x = 0, y = 0;
+    for(int i = 0; i != TILE_TOTAL; ++i)
+    {
+        if(x == 2)
+        {
+            ++y;
+            x=0;
+        }
+        tTiles[i].SetLocation( x*TILE_W + x*LINE_W, y*TILE_H + y*LINE_W);
+        ++x;
+    }
+
+    tTiles[1].SetSprite(SPRITE_OVER);
+    tTiles[2].SetSprite(SPRITE_CLICK);
+    tTiles[3].SetSprite(SPRITE_RELEASE);
+
+    return true;
+}
+
+
+/////////////////////////////////////
+////////   Our Game Loop     ////////
+/////////////////////////////////////
+
+void Play()
+{
+
+
+    //We will need these Rects when we start drawing 
+    SDL_Rect line1, line2;
+
+    line1.x = TILE_W;
+    line1.y = 0;
+    line1.h = SCREEN_H;
+    line1.w = LINE_W;
+
+    line2.x = 0;
+    line2.y = TILE_H;
+    line2.h = LINE_W;
+    line2.w = SCREEN_W;
+
+
+    //Use a quit flag to start a game loop
+    bool quit = false;
+    SDL_Event event;
+
+
+    while( !quit )
+    {
+        //While there are events to pull...
+        while(SDL_PollEvent(&event) != 0)
+        {
+            //Handle each one
+            //SDL_QUIT is something like hitting the Red X on the top right of screen. Also added support for ESC quit
+            if(event.type == SDL_QUIT || event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                quit = true;
+            }
+
+            //place Else here to react to other actions
+
+        }
+
+        //This is where the drawing happens!
+
+
+        //Clear screen with white
+        SDL_SetRenderDrawColor( theRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+        SDL_RenderClear( theRenderer );
+
+        //We must remember to change the renderer color
+        SDL_SetRenderDrawColor(theRenderer, 0, 0, 0, 255); //Color Black - Full Alpha
+
+        SDL_RenderFillRect(theRenderer, &line1);
+        SDL_RenderFillRect(theRenderer, &line2);
+
+
+        for(int i = 0; i!= TILE_TOTAL; ++i)
+        {
+            tTiles[i].Render();
+        }
+
+        //Update screen
+        SDL_RenderPresent( theRenderer );
+    }
+    //Quit is true at this point so we return
+    return;
+}
+
+
+/////////////////////////////////////
+////////   tTile Functions   ////////
+/////////////////////////////////////
+
+
+tTile::tTile()
+{
+    currentPosition.x = 0;
+    currentPosition.y = 0;
+    currentPosition.h = TILE_H;
+    currentPosition.w = TILE_W;
+
+    currentSprite = SPRITE_NONE;
+}
+
+void tTile::SetSprite(tSpriteSheet newSprite)
+{
+    currentSprite = newSprite;
+}
+
+void tTile::SetLocation(int x, int y)
+{
+    currentPosition.x = x;
+    currentPosition.y = y;
+}
+
+void tTile::Render()
+{
+    theSpriteSheet.RenderX( &currentPosition, &tSprites[currentSprite] );
+}
+
+/////////////////////////////////////
+//////// tTexture Functions  ////////
+/////////////////////////////////////
+void tTexture::Render(int x, int y, SDL_Rect* clip = NULL)
+{
+    //This is the box on location of the screen we will render to
+    SDL_Rect renderLocation;
+    //Use the x and y that were supplied
+    renderLocation.x = x;
+    renderLocation.y = y;
+    //And use the height and width of the full image
+    renderLocation.h = tHeight;
+    renderLocation.w = tWidth;
+
+    //Unless you want to supply a clip from a sprite sheet, then you would want the width/height of the clip instead of the height / width of the WHOLE sprite sheet
+    if(clip != NULL)
+    {
+        //Set the new H/W
+        renderLocation.h = clip->h;
+        renderLocation.w = clip->w;
+    }
+
+    SDL_RenderCopy(theRenderer, sTexture, clip, &renderLocation);
+
+}
+
+int tTexture::GetHeight()
+{
+    return tHeight;
+}
+
+int tTexture::GetWidth()
+{
+    return tWidth;
+}
+
+void tTexture::RenderX( SDL_Rect* target, SDL_Rect* clip )
+{
+    //We pass two Rects to this function
+    //target is the Rectangle on the screen that you will occupy
+    //clip is the rectangle that you select a sprite from the sprite sheet
+    SDL_RenderCopy(theRenderer, sTexture, clip , target);
+}
+
+tTexture::tTexture()
+{
+    sTexture = NULL;
+    tHeight = 0;
+    tWidth = 0;
+}
+
+tTexture::~tTexture()
+{
+    Deallocate();
+}
+
+void tTexture::Deallocate()
+{
+    if(sTexture != NULL)
+    {
+        SDL_DestroyTexture(sTexture);
+        sTexture = NULL;
+        tHeight = 0;
+        tWidth = 0;
+    }
+
+}
+
+bool tTexture::LoadImage(std::string filename)
+{
+    //This function uses the surface to load an image, then create a texture out of it
+
+    Deallocate();
+
+    //Create a "Guinna Pig" texture
+    SDL_Texture* thePig = NULL;
+
+    //Load a BMP into theSurface. BMP Is the only file type that native SDL2 can import. W(e will have to add SDL2_image to import other formats)
+    theSurface = SDL_LoadBMP( filename.c_str() ); //SDL_LoadBMP expects a ( char[] )
+    //Debug VV
+    if(theSurface == NULL)
+    {
+        std::cout << "Could not Load image! : " << SDL_GetError() <<std::endl;
+    }
+    else
+    {
+        //
+        thePig = SDL_CreateTextureFromSurface(theRenderer, theSurface);
+
+        //Debug VV
+        if(thePig == NULL)
+        {
+            std::cout << "Could not create texture! : " << SDL_GetError() <<std::endl;
+        }
+        //Set the height and width. -> ->(Remember that theSurface is a pointer)
+        tWidth = theSurface->w;
+        tHeight = theSurface->h;
+        //We are going to recycle our global "Surface"
+        SDL_FreeSurface(theSurface);
+        theSurface = NULL;
+    }
+
+
+    //Here is where we copy thePig into sTexture: If anything went wrong, thePig would have been NULL
+    sTexture = thePig;
+    return sTexture != NULL;
+}
+
+
+
+
+/////////////////////////////////////
+////////   Game Functions    ////////
+/////////////////////////////////////
 
 bool InitSDL()
 {
@@ -56,59 +311,6 @@ bool InitSDL()
 
 
 
-void Play()
-{
-    //We will need these Rects when we start drawing - Later we will create a bool LoadContent() Function!
-    SDL_Rect line1, line2;
-
-    line1.x = SCREEN_W / 2 - LINE_W / 2;
-    line1.y = 0;
-    line1.h = SCREEN_H;
-    line1.w = LINE_W;
-
-    line2.x = 0;
-    line2.y = SCREEN_H / 2 - LINE_W / 2;
-    line2.h = LINE_W;
-    line2.w = SCREEN_W;
-
-    //Use a quit flag to start a game loop
-    bool quit = false;
-    SDL_Event event;
-
-    while( !quit )
-    {
-        //While there are events to pull...
-        while(SDL_PollEvent(&event) != 0)
-        {
-            //Handle each one
-            //SDL_QUIT is something like hitting the Red X on the top right of screen. Also added support for ESC quit
-            if(event.type == SDL_QUIT || event.key.keysym.sym == SDLK_ESCAPE)
-            {
-                quit = true;
-            }
-            //place Else here to react to other actions
-
-        }
-
-        //This is where the drawing happens!
-
-
-        //Clear screen with white
-        SDL_SetRenderDrawColor( theRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-        SDL_RenderClear( theRenderer );
-
-        //We must remember to change the renderer color
-        SDL_SetRenderDrawColor(theRenderer, 0, 0, 0, 255); //Color Black - Full Alpha
-        SDL_RenderFillRect(theRenderer, &line1);
-        SDL_RenderFillRect(theRenderer, &line2);
-
-
-        //Update screen
-        SDL_RenderPresent( theRenderer );
-    }
-    //Quit is true at this point so we return
-    return;
-}
 
 
 
