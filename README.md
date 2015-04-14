@@ -1,5 +1,11 @@
 # TixTaxToo
-First Group Game! Woohoo!
+To Draw Board:
+(All you need to set : SCREEN_H / W / ROWS_TOTAL / LINE_W) - The program takes care of the rest
+
+v0.9 - Update: 4/14/2015 - 05:15 EST;
+Updated the HandleEvent function && Created algorithm to draw board && Updated tTile class
+
+IF: There are an even amount of boxes - The game will NOT reset once all boxes are filled (Try filling all the boxes with ROWS_TOTAL = 3) - Now try ROWS_TOTAL = 4
 
 v0.7 - Update: 4/13/2015 - 20:45 EST;
 Added the HandleEvent Function for tTile - We can now read mouse input!
