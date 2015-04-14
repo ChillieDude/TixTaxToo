@@ -1,70 +1,11 @@
 #include "Globals.h"
 
-
-/////////////////////////////////////
-////////  Load Game Content  ////////
-/////////////////////////////////////
-
-bool LoadContent()
-{
-    if(!theSpriteSheet.LoadImage("SpriteSheet.bmp") )
-    {
-        std::cout << "Oops" <<std::endl;
-        return false;
-    }
-    //This sprite sheet will read right left to right, sprite size being 100
-    for(int i = 0; i!= SPRITE_TOTAL; ++i )
-    {
-        tSprites[i].h = 100;
-        tSprites[i].w = 100;
-        tSprites[i].y = 0;
-        tSprites[i].x = i*100;
-    }
-
-    int x = 0, y = 0;
-    for(int i = 0; i != TILE_TOTAL; ++i)
-    {
-        if(x == 2)
-        {
-            ++y;
-            x=0;
-        }
-        tTiles[i].SetLocation( x*TILE_W + x*LINE_W, y*TILE_H + y*LINE_W);
-        ++x;
-
-        //DEBUG
-        std::cout << "Tile " << i << ": X = " << tTiles[i].GetX() << "\t& Y = " << tTiles[i].GetY() << "  \t W = " << tTiles[i].GetW() << " & H = " << tTiles[i].GetH() << std::endl;
-    }
-
-
-    return true;
-}
-
-
 /////////////////////////////////////
 ////////   Our Game Loop     ////////
 /////////////////////////////////////
 
 void Play()
 {
-
-
-    //We will need these Rects when we start drawing - Later we will create a bool LoadContent() Function!
-    SDL_Rect line1, line2;
-
-    line1.x = TILE_W;
-    line1.y = 0;
-    line1.h = SCREEN_H;
-    line1.w = LINE_W;
-
-    line2.x = 0;
-    line2.y = TILE_H;
-    line2.h = LINE_W;
-    line2.w = SCREEN_W;
-
-
-
-
     //Use a quit flag to start a game loop
     bool quit = false;
     SDL_Event event;
@@ -88,21 +29,27 @@ void Play()
             }
 
         }
-
-        //This is where the drawing happens!
-
+        
+        //If its not my turn, let the computer go
+        if(isMyTurn == false)
+        {
+            ComputersTurn();
+        }
 
         //Clear screen with white
         SDL_SetRenderDrawColor( theRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
         SDL_RenderClear( theRenderer );
 
-        //We must remember to change the renderer color
+        //Change the renderer color
         SDL_SetRenderDrawColor(theRenderer, 0x00, 0x00, 0x00, 0xFF ); //Color Black - Full Alpha
-
-        SDL_RenderFillRect(theRenderer, &line1);
-        SDL_RenderFillRect(theRenderer, &line2);
-
-
+        
+        //Draw the Lines
+        for(int i = 0; i != LINE_TOTAL; ++i)
+        {
+            SDL_RenderFillRect(theRenderer, &tLines[i]);
+        }
+        
+        //Draw the Tiles
         for(int i = 0; i!= TILE_TOTAL; ++i)
         {
             tTiles[i].Render();
@@ -115,7 +62,77 @@ void Play()
     return;
 }
 
+void ComputersTurn()
+{
+    //Boolean to test if there are any spots left
+    bool gameFinished = true;
+    int spots = 0;
+    
+    for(int i = 0; i!= TILE_TOTAL; ++i)
+    {
+        //If any of the tiles are open for selection...
+        if(tTiles[i].isOpen())
+        {
+            spots++;
+            gameFinished = false;   //That means the game isnt finished
+        }
+    }
+        //Debugging V V
+        std::cout << "There are " << spots << " spots before COM move" <<std::endl;
 
+    if(gameFinished)
+    {
+        std::cout << "Game over!" << std::endl;
+        isMyTurn = true;
+        for(int i = 0; i != TILE_TOTAL; ++i)
+        {
+            tTiles[i].Reset();
+        }
+    }
+    else
+    {
+        //idea is the tile that the computer will ponder about
+        int idea = 0, index = 1;
+
+        //initialize the random number generator - every time this function is called
+        srand(time(NULL));
+
+        while(true)
+        {
+
+            //Number 0-8
+            idea = rand() % (ROWS_TOTAL * ROWS_TOTAL);
+            
+            //Debug V V
+            std::cout << "Idea Number " << index << ": " << idea << std::endl;
+            
+            //If the tile that the COM is thinking about - Is Open for selection..
+            if(tTiles[idea].isOpen())
+            {
+                //Set the player = O - Marked = true - currentSprite = SPRITE_COM - 
+                tTiles[idea].SetChar('O');
+                tTiles[idea].SetMark();
+                tTiles[idea].SetSprite(SPRITE_COM);
+                
+                //Its now my turn
+                isMyTurn = true;
+                
+                //break out of the While(true)
+                break;
+            }
+            else
+            {
+                //If the idea Tile was not available - Increase the index 
+                index++;
+                
+                //And restart the While(true) loop
+                continue;
+            }
+        }
+    }
+
+
+}
 /////////////////////////////////////
 ////////   tTile Functions   ////////
 /////////////////////////////////////
@@ -123,14 +140,38 @@ void Play()
 
 tTile::tTile()
 {
+    //Initialization
     currentPosition.x = 0;
     currentPosition.y = 0;
     currentPosition.h = TILE_H;
     currentPosition.w = TILE_W;
 
+    player = ' ';
+    marked = false;
     currentSprite = SPRITE_NONE;
 }
 
+void tTile::Reset()
+{
+    //Reset the Tile - (Reset game)
+    player = ' ';
+    marked = false;
+    currentSprite = SPRITE_NONE;
+}
+void tTile::SetMark()
+{
+    marked = true;
+}
+
+void tTile::SetChar(char c)
+{
+    player = c;
+}
+
+bool tTile::isOpen()
+{
+    return marked == false;
+}
 void tTile::SetSprite(tSpriteFlag newSprite)
 {
     currentSprite = newSprite;
@@ -169,6 +210,13 @@ void tTile::Render()
 
 void tTile::HandleEvent(SDL_Event* event)
 {
+    //If this tile has already been marked, then dont handle a mouse event -
+    //Or maybe you can choose to highlight the background with the light gray, Then render the X or O on top of that ( you will need to Color Key)
+    if(marked)
+    {
+        return;
+    }
+
     //If our event relates to the mouse...
     if(event->type == SDL_MOUSEMOTION || event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP)
     {
@@ -205,13 +253,20 @@ void tTile::HandleEvent(SDL_Event* event)
 
             case SDL_MOUSEBUTTONUP:
                 currentSprite = SPRITE_RELEASE;
+                marked = true;
+                isMyTurn = false;
                 break;
             }
         }
-        else
+        else //If the focus is not set on this tile...
         {
-            //If the focus isnt set on this tile... Then
-            currentSprite = SPRITE_NONE;
+            //And if the tile has not been marked...
+            if(!marked)
+            {
+                //Set the current sprite to "Blank"
+                currentSprite = SPRITE_NONE;
+            }
+
         }
     }
 }
@@ -331,7 +386,7 @@ bool tTexture::LoadImage(std::string filename)
 
 
 /////////////////////////////////////
-////////   Game Functions    ////////
+////////   Game Functions    ////////---------------------------
 /////////////////////////////////////
 
 bool InitSDL()
@@ -386,7 +441,84 @@ bool InitSDL()
     }
 }
 
+/////////////////////////////////////
+////////  Load Game Content  ////////
+/////////////////////////////////////
 
+bool LoadContent()
+{
+    if(!theSpriteSheet.LoadImage("SpriteSheet.bmp") )
+    {
+        std::cout << "Oops" <<std::endl;
+        return false;
+    }
+
+    //While we load our content, we should check and see if the resolution isnt perfect
+
+    if((SCREEN_W - LINE_W * (LINE_TOTAL / 2) ) % ROWS_TOTAL != 0)
+    {
+        std::cout << "Non-Critical Error: Screen width isnt perfect: " << (SCREEN_W - LINE_W * (LINE_TOTAL / 2) ) % ROWS_TOTAL << " unused Pixels" << std::endl;
+
+    }
+    if((SCREEN_H - LINE_W * (LINE_TOTAL / 2) ) % ROWS_TOTAL != 0)
+    {
+        std::cout << "Non-Critical Error: Screen height isnt perfect: " << (SCREEN_H - LINE_W * (LINE_TOTAL / 2) ) % ROWS_TOTAL << " unused Pixels" << std::endl;
+    }
+
+    //This sprite sheet will read right left to right, sprite size being 100
+    for(int i = 0; i!= SPRITE_TOTAL; ++i )
+    {
+        tSprites[i].h = 100;
+        tSprites[i].w = 100;
+        tSprites[i].y = 0;
+        tSprites[i].x = i*100;
+    }
+
+    //Set the location of all tiles
+    int x = 0, y = 0;
+    for(int i = 0; i != TILE_TOTAL; ++i)
+    {
+        if(x == ROWS_TOTAL)
+        {
+            ++y;
+            x = 0;
+        }
+        tTiles[i].SetLocation( x*TILE_W + x*LINE_W, y*TILE_H + y*LINE_W);
+        ++x;
+        //DEBUG
+        //std::cout << "Tile " << i << "\t: X = " << tTiles[i].GetX() << "\t\t& Y = " << tTiles[i].GetY() << "  \t W = " << tTiles[i].GetW() << " & H = " << tTiles[i].GetH() << std::endl;
+
+    }
+
+    //Now set the location for the Lines
+    x = 1, y = 1;
+    for(int i = 0; i != LINE_TOTAL ; ++i )
+    {
+        //First all of the Horizontal lines
+        if(x <= LINE_TOTAL / 2)
+        {
+            tLines[i].x = TILE_W * x + LINE_W * (x-1);
+            tLines[i].y = 0;
+            tLines[i].h = SCREEN_H;
+            tLines[i].w = LINE_W;
+
+            ++x;
+        }
+        else
+        {
+            tLines[i].x = 0;
+            tLines[i].y = TILE_H * y + LINE_W * (y-1);
+            tLines[i].h = LINE_W;
+            tLines[i].w = SCREEN_W;
+
+            ++y;
+        }
+
+    }
+
+    std::cout << "Tile W : " << TILE_W << "\nTile H : " << TILE_H << std::endl;
+    return true;
+}
 
 
 
