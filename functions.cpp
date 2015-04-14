@@ -31,11 +31,11 @@ bool LoadContent()
         }
         tTiles[i].SetLocation( x*TILE_W + x*LINE_W, y*TILE_H + y*LINE_W);
         ++x;
+
+        //DEBUG
+        std::cout << "Tile " << i << ": X = " << tTiles[i].GetX() << "\t& Y = " << tTiles[i].GetY() << "  \t W = " << tTiles[i].GetW() << " & H = " << tTiles[i].GetH() << std::endl;
     }
 
-    tTiles[1].SetSprite(SPRITE_OVER);
-    tTiles[2].SetSprite(SPRITE_CLICK);
-    tTiles[3].SetSprite(SPRITE_RELEASE);
 
     return true;
 }
@@ -49,7 +49,7 @@ void Play()
 {
 
 
-    //We will need these Rects when we start drawing 
+    //We will need these Rects when we start drawing - Later we will create a bool LoadContent() Function!
     SDL_Rect line1, line2;
 
     line1.x = TILE_W;
@@ -61,6 +61,8 @@ void Play()
     line2.y = TILE_H;
     line2.h = LINE_W;
     line2.w = SCREEN_W;
+
+
 
 
     //Use a quit flag to start a game loop
@@ -80,7 +82,10 @@ void Play()
                 quit = true;
             }
 
-            //place Else here to react to other actions
+            for(int i = 0; i != TILE_TOTAL; ++i)
+            {
+                tTiles[i].HandleEvent(&event);
+            }
 
         }
 
@@ -92,7 +97,7 @@ void Play()
         SDL_RenderClear( theRenderer );
 
         //We must remember to change the renderer color
-        SDL_SetRenderDrawColor(theRenderer, 0, 0, 0, 255); //Color Black - Full Alpha
+        SDL_SetRenderDrawColor(theRenderer, 0x00, 0x00, 0x00, 0xFF ); //Color Black - Full Alpha
 
         SDL_RenderFillRect(theRenderer, &line1);
         SDL_RenderFillRect(theRenderer, &line2);
@@ -126,9 +131,29 @@ tTile::tTile()
     currentSprite = SPRITE_NONE;
 }
 
-void tTile::SetSprite(tSpriteSheet newSprite)
+void tTile::SetSprite(tSpriteFlag newSprite)
 {
     currentSprite = newSprite;
+}
+
+int tTile::GetW()
+{
+    return currentPosition.w;
+}
+
+int tTile::GetH()
+{
+    return currentPosition.h;
+}
+
+int tTile::GetX()
+{
+    return currentPosition.x;
+}
+
+int tTile::GetY()
+{
+    return currentPosition.y;
 }
 
 void tTile::SetLocation(int x, int y)
@@ -142,6 +167,55 @@ void tTile::Render()
     theSpriteSheet.RenderX( &currentPosition, &tSprites[currentSprite] );
 }
 
+void tTile::HandleEvent(SDL_Event* event)
+{
+    //If our event relates to the mouse...
+    if(event->type == SDL_MOUSEMOTION || event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP)
+    {
+        //We need to store - and fetch - the mouse coordinates for tests
+        int mouseX = 0, mouseY = 0;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        //If Focus becomes true, that means
+        bool focus = false;
+
+        //If the MouseX is in between the X coordinates of the tile....
+        if(mouseX >= currentPosition.x && mouseX <= currentPosition.x + currentPosition.w )
+        {
+            //AND... if the MouseY is in between the Y coordinates of the tile...
+            if(mouseY >= currentPosition.y && mouseY <= currentPosition.y + currentPosition.h)
+            {
+                //Then... we set the focus to true (Time to handle Events)
+                focus = true;
+            }
+        }
+
+        //If The mouse is placed on the tTile : Handle the event!
+        if(focus == true)
+        {
+            switch(event->type)
+            {
+            case SDL_MOUSEMOTION:
+                currentSprite = SPRITE_OVER;
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                currentSprite = SPRITE_CLICK;
+                break;
+
+            case SDL_MOUSEBUTTONUP:
+                currentSprite = SPRITE_RELEASE;
+                break;
+            }
+        }
+        else
+        {
+            //If the focus isnt set on this tile... Then
+            currentSprite = SPRITE_NONE;
+        }
+    }
+}
+
 /////////////////////////////////////
 //////// tTexture Functions  ////////
 /////////////////////////////////////
@@ -149,9 +223,11 @@ void tTexture::Render(int x, int y, SDL_Rect* clip = NULL)
 {
     //This is the box on location of the screen we will render to
     SDL_Rect renderLocation;
+
     //Use the x and y that were supplied
     renderLocation.x = x;
     renderLocation.y = y;
+
     //And use the height and width of the full image
     renderLocation.h = tHeight;
     renderLocation.w = tWidth;
@@ -221,6 +297,7 @@ bool tTexture::LoadImage(std::string filename)
 
     //Load a BMP into theSurface. BMP Is the only file type that native SDL2 can import. W(e will have to add SDL2_image to import other formats)
     theSurface = SDL_LoadBMP( filename.c_str() ); //SDL_LoadBMP expects a ( char[] )
+
     //Debug VV
     if(theSurface == NULL)
     {
@@ -228,7 +305,7 @@ bool tTexture::LoadImage(std::string filename)
     }
     else
     {
-        //
+        //theTexture = SDL_CreateTextureFromSurface(theRenderer, theSurface);
         thePig = SDL_CreateTextureFromSurface(theRenderer, theSurface);
 
         //Debug VV
