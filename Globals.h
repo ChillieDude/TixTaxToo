@@ -83,7 +83,7 @@ public:
     void Reset();
     void SetLocation(int x, int y);
     void Render();
-    void HandleEvent(SDL_Event* event);
+    void HandleEvent(SDL_Event* event, Uint32& lastEvent);
     void SetSprite(tSpriteFlag newSprite);
     void SetChar(char c);
     void SetMark();
