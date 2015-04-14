@@ -3,6 +3,8 @@
 
 #include <SDL.h>
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 
 class tTexture
 {
@@ -39,19 +41,23 @@ extern tTexture theSpriteSheet;
 extern const int SCREEN_W;
 extern const int SCREEN_H;
 extern const int LINE_W;
+extern const int ROWS_TOTAL;
+
+extern const int LINE_TOTAL;
 extern const int TILE_W;
 extern const int TILE_H;
 extern const int TILE_TOTAL;
 
-//these can be deleted without any harm VV But make sure to delete line1 / line2 in Play()
-extern int boxH;
-extern int boxW;
+extern bool isMyTurn;
+
+
 
 //Lets also declare our functions
 bool InitSDL();
 bool LoadContent();
 void Close();
 void Play();
+void ComputersTurn();
 
 
 //Sprite Flags  : BEGIN
@@ -61,7 +67,8 @@ enum tSpriteFlag
     SPRITE_OVER = 1,
     SPRITE_CLICK = 2,
     SPRITE_RELEASE = 3,
-    SPRITE_TOTAL = 4
+    SPRITE_COM = 4,
+    SPRITE_TOTAL = 5
 };
 
 extern SDL_Rect tSprites[SPRITE_TOTAL];
@@ -73,10 +80,15 @@ class tTile
 public:
     tTile();
 
+    void Reset();
     void SetLocation(int x, int y);
     void Render();
     void HandleEvent(SDL_Event* event);
     void SetSprite(tSpriteFlag newSprite);
+    void SetChar(char c);
+    void SetMark();
+
+    bool isOpen();
 
     int GetY();
     int GetX();
@@ -86,8 +98,11 @@ private:
 
     tSpriteFlag currentSprite;
     SDL_Rect currentPosition;
+    bool marked;
+    char player;
 };
 
 extern tTile tTiles[];
+extern SDL_Rect tLines[];
 
 #endif // GLOBALS_H_INCLUDED
