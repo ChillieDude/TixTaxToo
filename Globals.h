@@ -46,14 +46,16 @@ extern const int TILE_TOTAL;
 //these can be deleted without any harm VV But make sure to delete line1 / line2 in Play()
 extern int boxH;
 extern int boxW;
-//
+
 //Lets also declare our functions
 bool InitSDL();
 bool LoadContent();
 void Close();
 void Play();
 
-enum tSpriteSheet
+
+//Sprite Flags  : BEGIN
+enum tSpriteFlag
 {
     SPRITE_NONE = 0,
     SPRITE_OVER = 1,
@@ -63,6 +65,8 @@ enum tSpriteSheet
 };
 
 extern SDL_Rect tSprites[SPRITE_TOTAL];
+//Sprite Flags  : END
+
 
 class tTile
 {
@@ -72,18 +76,18 @@ public:
     void SetLocation(int x, int y);
     void Render();
     void HandleEvent(SDL_Event* event);
-    void SetSprite(tSpriteSheet newSprite);
+    void SetSprite(tSpriteFlag newSprite);
+
+    int GetY();
+    int GetX();
+    int GetW();
+    int GetH();
 private:
-    tSpriteSheet currentSprite;
+
+    tSpriteFlag currentSprite;
     SDL_Rect currentPosition;
 };
 
-
-
 extern tTile tTiles[];
-
-
-
-
 
 #endif // GLOBALS_H_INCLUDED
