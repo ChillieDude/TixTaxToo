@@ -2,6 +2,9 @@
 To Draw Board:
 (All you need to set : SCREEN_H / W / ROWS_TOTAL / LINE_W) - The program takes care of the rest
 
+v0.9.1 - 4/14/2015 - 17:06 EST;
+Updated the HandleEvent to allow a sort of "click and drag" effect
+
 v0.9 - Update: 4/14/2015 - 05:15 EST;
 Updated the HandleEvent function && Created algorithm to draw board && Updated tTile class
 
