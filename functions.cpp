@@ -9,6 +9,7 @@ void Play()
     //Use a quit flag to start a game loop
     bool quit = false;
     SDL_Event event;
+    Uint32 lastEvent = 0;
 
 
     while( !quit )
@@ -25,11 +26,11 @@ void Play()
 
             for(int i = 0; i != TILE_TOTAL; ++i)
             {
-                tTiles[i].HandleEvent(&event);
+                tTiles[i].HandleEvent(&event, lastEvent);
             }
-
+        std::cout << lastEvent <<std::endl;
         }
-        
+
         //If its not my turn, let the computer go
         if(isMyTurn == false)
         {
@@ -42,13 +43,13 @@ void Play()
 
         //Change the renderer color
         SDL_SetRenderDrawColor(theRenderer, 0x00, 0x00, 0x00, 0xFF ); //Color Black - Full Alpha
-        
+
         //Draw the Lines
         for(int i = 0; i != LINE_TOTAL; ++i)
         {
             SDL_RenderFillRect(theRenderer, &tLines[i]);
         }
-        
+
         //Draw the Tiles
         for(int i = 0; i!= TILE_TOTAL; ++i)
         {
@@ -67,7 +68,7 @@ void ComputersTurn()
     //Boolean to test if there are any spots left
     bool gameFinished = true;
     int spots = 0;
-    
+
     for(int i = 0; i!= TILE_TOTAL; ++i)
     {
         //If any of the tiles are open for selection...
@@ -102,29 +103,29 @@ void ComputersTurn()
 
             //Number 0-8
             idea = rand() % (ROWS_TOTAL * ROWS_TOTAL);
-            
+
             //Debug V V
             std::cout << "Idea Number " << index << ": " << idea << std::endl;
-            
+
             //If the tile that the COM is thinking about - Is Open for selection..
             if(tTiles[idea].isOpen())
             {
-                //Set the player = O - Marked = true - currentSprite = SPRITE_COM - 
+                //Set the player = O - Marked = true - currentSprite = SPRITE_COM -
                 tTiles[idea].SetChar('O');
                 tTiles[idea].SetMark();
                 tTiles[idea].SetSprite(SPRITE_COM);
-                
+
                 //Its now my turn
                 isMyTurn = true;
-                
+
                 //break out of the While(true)
                 break;
             }
             else
             {
-                //If the idea Tile was not available - Increase the index 
+                //If the idea Tile was not available - Increase the index
                 index++;
-                
+
                 //And restart the While(true) loop
                 continue;
             }
@@ -208,7 +209,7 @@ void tTile::Render()
     theSpriteSheet.RenderX( &currentPosition, &tSprites[currentSprite] );
 }
 
-void tTile::HandleEvent(SDL_Event* event)
+void tTile::HandleEvent(SDL_Event* event, Uint32& lastEvent )
 {
     //If this tile has already been marked, then dont handle a mouse event -
     //Or maybe you can choose to highlight the background with the light gray, Then render the X or O on top of that ( you will need to Color Key)
@@ -216,6 +217,8 @@ void tTile::HandleEvent(SDL_Event* event)
     {
         return;
     }
+    //If the last event was SDL_MOUSEBUTTONDOWN - And
+
 
     //If our event relates to the mouse...
     if(event->type == SDL_MOUSEMOTION || event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP)
@@ -224,7 +227,7 @@ void tTile::HandleEvent(SDL_Event* event)
         int mouseX = 0, mouseY = 0;
         SDL_GetMouseState(&mouseX, &mouseY);
 
-        //If Focus becomes true, that means
+        //If Focus becomes true, that means the mouse is over the Tile
         bool focus = false;
 
         //If the MouseX is in between the X coordinates of the tile....
@@ -244,17 +247,33 @@ void tTile::HandleEvent(SDL_Event* event)
             switch(event->type)
             {
             case SDL_MOUSEMOTION:
-                currentSprite = SPRITE_OVER;
+                //Only change the current sprite to SPRITE_OVER is the last event was NOT
+                if(lastEvent == SDL_MOUSEBUTTONDOWN)
+                {
+                        currentSprite = SPRITE_CLICK;
+                        break;
+
+                }
+                else
+                {
+                        currentSprite = SPRITE_OVER;
+                        lastEvent = SDL_MOUSEMOTION;
+                }
+
+
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
                 currentSprite = SPRITE_CLICK;
+                lastEvent = SDL_MOUSEBUTTONDOWN;
                 break;
 
             case SDL_MOUSEBUTTONUP:
                 currentSprite = SPRITE_RELEASE;
                 marked = true;
                 isMyTurn = false;
+
+                lastEvent = SDL_MOUSEBUTTONUP;
                 break;
             }
         }
