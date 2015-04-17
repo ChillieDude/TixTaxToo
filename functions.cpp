@@ -1,5 +1,200 @@
 #include "Globals.h"
 
+//
+//Matts Win Function
+//
+
+enum winFlag
+{
+    TILE_TOP_LEFT = 0,
+    TILE_TOP_MIDDLE = 1,
+    TILE_TOP_RIGHT = 2,
+    TILE_CENTER_LEFT = 3,
+    TILE_CENTER_MIDDLE = 4,
+    TILE_CENTER_RIGHT = 5,
+    TILE_BOTTOM_LEFT= 6,
+    TILE_BOTTOM_MIDDLE = 7,
+    TILE_BOTTOM_RIGHT = 8,
+};
+
+bool winCondition(int* slots, int size, winFlag* flags)
+{
+    bool does = false;
+    for(int i = 0; i < 3; i++)
+    {
+        winFlag flag = flags[i];
+        does = false;
+        for(int j = 0; j < size; j++)
+        {
+            if(slots[j] == flag)
+            {
+                does = true;
+                break;
+            }
+        }
+        if(!does)
+        {
+            return false;
+        }
+    }
+    return does;
+}
+
+bool IWin(char givenCharacter)
+{
+    int spots[TILE_TOTAL];
+    int index = 0;
+
+    for(int i = 0; i < TILE_TOTAL; i++)
+    {
+        if(tTiles[i].CallC() == givenCharacter)
+        {
+            spots[index] = i;
+            index++;
+        }
+    }
+
+    if(index < 2) return false;
+
+    winFlag flags[3] = {TILE_TOP_LEFT, TILE_TOP_MIDDLE, TILE_TOP_RIGHT};
+
+    //win conditions for TILE_TOP_LEFT
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_LEFT;
+    flags[2] = TILE_BOTTOM_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_MIDDLE;
+    flags[2] = TILE_BOTTOM_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    //win conditions for TILE_TOP_MIDDLE
+    flags[0] = TILE_TOP_MIDDLE;
+    flags[1] = TILE_TOP_LEFT;
+    flags[2] = TILE_TOP_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_MIDDLE;
+    flags[2] = TILE_BOTTOM_MIDDLE;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    //win conditions for TILE_TOP_RIGHT
+    flags[0] = TILE_TOP_RIGHT;
+    flags[1] = TILE_CENTER_RIGHT;
+    flags[2] = TILE_BOTTOM_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_TOP_MIDDLE;
+    flags[2] = TILE_TOP_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_MIDDLE;
+    flags[2] = TILE_BOTTOM_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+
+    //win conditions for TILE_CENTER_LEFT
+    flags[0] = TILE_CENTER_LEFT;
+    flags[1] = TILE_CENTER_MIDDLE;
+    flags[2] = TILE_CENTER_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_TOP_LEFT;
+    flags[2] = TILE_BOTTOM_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    //win conditions for TILE_CENTER_MIDDLE
+    flags[0] = TILE_CENTER_MIDDLE;
+    flags[1] = TILE_CENTER_LEFT;
+    flags[2] = TILE_CENTER_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_TOP_MIDDLE;
+    flags[2] = TILE_BOTTOM_MIDDLE;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_TOP_RIGHT;
+    flags[2] = TILE_BOTTOM_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    //win conditions for TILE_CENTER_RIGHT
+    flags[0] = TILE_CENTER_RIGHT;
+    flags[1] = TILE_CENTER_LEFT;
+    flags[2] = TILE_CENTER_MIDDLE;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_TOP_RIGHT;
+    flags[2] = TILE_BOTTOM_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    //win conditions for TILE_BOTTOM_LEFT
+    flags[0] = TILE_BOTTOM_LEFT;
+    flags[1] = TILE_BOTTOM_MIDDLE;
+    flags[2] = TILE_BOTTOM_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_LEFT;
+    flags[2] = TILE_TOP_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_MIDDLE;
+    flags[2] = TILE_TOP_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    //win conditions for TILE_BOTTOM_MIDDLE
+    flags[0] = TILE_BOTTOM_MIDDLE;
+    flags[1] = TILE_BOTTOM_LEFT;
+    flags[2] = TILE_BOTTOM_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_MIDDLE;
+    flags[2] = TILE_TOP_MIDDLE;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    //win conditions for TILE_BOTTOM_RIGHT
+    flags[0] = TILE_BOTTOM_RIGHT;
+    flags[1] = TILE_BOTTOM_MIDDLE;
+    flags[2] = TILE_BOTTOM_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_RIGHT;
+    flags[2] = TILE_TOP_RIGHT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    flags[1] = TILE_CENTER_MIDDLE;
+    flags[2] = TILE_TOP_LEFT;
+
+    if(winCondition(spots, index, flags)) return true;
+
+    return false;
+}
+
+
+
+
+
 /////////////////////////////////////
 ////////   Our Game Loop     ////////
 /////////////////////////////////////
@@ -19,16 +214,33 @@ void Play()
         {
             //Handle each one
             //SDL_QUIT is something like hitting the Red X on the top right of screen. Also added support for ESC quit
-            if(event.type == SDL_QUIT || event.key.keysym.sym == SDLK_ESCAPE)
+            if(event.type == SDL_QUIT )
             {
                 quit = true;
             }
 
+            if(event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                quit = true;
+                //Menu();
+                //continue;
+            }
             for(int i = 0; i != TILE_TOTAL; ++i)
             {
                 tTiles[i].HandleEvent(&event, lastEvent);
             }
-        std::cout << lastEvent <<std::endl;
+            //std::cout << lastEvent <<std::endl;
+        }
+
+        if( IWin('X') )
+        {
+            std::cout << "\n\nX Wins" << std::endl;
+            ResetGame();
+        }
+        else if (IWin('O'))
+        {
+            std::cout << "\n\nO Wins" << std::endl;
+            ResetGame();
         }
 
         //If its not my turn, let the computer go
@@ -37,27 +249,17 @@ void Play()
             ComputersTurn();
         }
 
+
+
         //Clear screen with white
         SDL_SetRenderDrawColor( theRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
         SDL_RenderClear( theRenderer );
 
-        //Change the renderer color
-        SDL_SetRenderDrawColor(theRenderer, 0x00, 0x00, 0x00, 0xFF ); //Color Black - Full Alpha
+        DrawBoard();
 
-        //Draw the Lines
-        for(int i = 0; i != LINE_TOTAL; ++i)
-        {
-            SDL_RenderFillRect(theRenderer, &tLines[i]);
-        }
-
-        //Draw the Tiles
-        for(int i = 0; i!= TILE_TOTAL; ++i)
-        {
-            tTiles[i].Render();
-        }
-
-        //Update screen
         SDL_RenderPresent( theRenderer );
+
+
     }
     //Quit is true at this point so we return
     return;
@@ -78,17 +280,12 @@ void ComputersTurn()
             gameFinished = false;   //That means the game isnt finished
         }
     }
-        //Debugging V V
-        std::cout << "There are " << spots << " spots before COM move" <<std::endl;
+    //Debugging V V
+    std::cout << "There are " << spots << " spots before COM move" <<std::endl;
 
     if(gameFinished)
     {
-        std::cout << "Game over!" << std::endl;
-        isMyTurn = true;
-        for(int i = 0; i != TILE_TOTAL; ++i)
-        {
-            tTiles[i].Reset();
-        }
+        ResetGame();
     }
     else
     {
@@ -134,6 +331,17 @@ void ComputersTurn()
 
 
 }
+
+
+void ResetGame()
+{
+    std::cout << "Game over!" << std::endl;
+    isMyTurn = true;
+    for(int i = 0; i != TILE_TOTAL; ++i)
+    {
+        tTiles[i].Reset();
+    }
+}
 /////////////////////////////////////
 ////////   tTile Functions   ////////
 /////////////////////////////////////
@@ -150,6 +358,11 @@ tTile::tTile()
     player = ' ';
     marked = false;
     currentSprite = SPRITE_NONE;
+}
+
+char tTile::CallC()
+{
+    return player;
 }
 
 void tTile::Reset()
@@ -211,12 +424,7 @@ void tTile::Render()
 
 void tTile::HandleEvent(SDL_Event* event, Uint32& lastEvent )
 {
-    //If this tile has already been marked, then dont handle a mouse event -
-    //Or maybe you can choose to highlight the background with the light gray, Then render the X or O on top of that ( you will need to Color Key)
-    if(marked)
-    {
-        return;
-    }
+
     //If the last event was SDL_MOUSEBUTTONDOWN - And
 
 
@@ -250,28 +458,42 @@ void tTile::HandleEvent(SDL_Event* event, Uint32& lastEvent )
                 //Only change the current sprite to SPRITE_OVER is the last event was NOT
                 if(lastEvent == SDL_MOUSEBUTTONDOWN)
                 {
+                    if(!marked)
+                    {
                         currentSprite = SPRITE_CLICK;
-                        break;
+                    }
 
                 }
                 else
                 {
+                    if(!marked)
+                    {
                         currentSprite = SPRITE_OVER;
                         lastEvent = SDL_MOUSEMOTION;
+                    }
+
                 }
 
 
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
-                currentSprite = SPRITE_CLICK;
+                if(!marked)
+                {
+                    currentSprite = SPRITE_CLICK;
+                }
+
                 lastEvent = SDL_MOUSEBUTTONDOWN;
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                currentSprite = SPRITE_RELEASE;
-                marked = true;
-                isMyTurn = false;
+                if(!marked)
+                {
+                    currentSprite = SPRITE_RELEASE;
+                    marked = true;
+                    isMyTurn = false;
+                    player = 'X';
+                }
 
                 lastEvent = SDL_MOUSEBUTTONUP;
                 break;
@@ -407,6 +629,40 @@ bool tTexture::LoadImage(std::string filename)
 /////////////////////////////////////
 ////////   Game Functions    ////////---------------------------
 /////////////////////////////////////
+void DrawMenu()
+{
+    SDL_SetRenderDrawColor(theRenderer, 0x00, 0x00, 0x00, 0xFF);
+
+    SDL_Rect MenuSize;
+    MenuSize.x = SCREEN_W / 4;
+    MenuSize.y = SCREEN_H / 4;
+    MenuSize.w = SCREEN_W / 2;
+    MenuSize.h = SCREEN_H / 2;
+
+    SDL_RenderFillRect(theRenderer, &MenuSize);
+
+}
+
+void DrawBoard()
+{
+    //Change the renderer color
+    SDL_SetRenderDrawColor(theRenderer, 0x00, 0x00, 0x00, 0xFF ); //Color Black - Full Alpha
+
+    //Draw the Lines
+    for(int i = 0; i != LINE_TOTAL; ++i)
+    {
+        SDL_RenderFillRect(theRenderer, &tLines[i]);
+    }
+
+    //Draw the Tiles
+    for(int i = 0; i!= TILE_TOTAL; ++i)
+    {
+        tTiles[i].Render();
+    }
+
+
+}
+
 
 bool InitSDL()
 {
@@ -548,6 +804,7 @@ void Close()
 
     SDL_DestroyWindow(theWindow);
     SDL_DestroyRenderer(theRenderer);
+    theSpriteSheet.Deallocate();
 
     theWindow = NULL;
     theRenderer = NULL;
