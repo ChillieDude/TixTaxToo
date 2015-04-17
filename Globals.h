@@ -46,7 +46,6 @@ extern const int ROWS_TOTAL;
 extern const int LINE_TOTAL;
 extern const int TILE_W;
 extern const int TILE_H;
-extern const int TILE_TOTAL;
 
 
 
@@ -148,7 +147,7 @@ enum winFlag
 };
 
 bool IWin(char givenCharacter);
-bool winCondition(int* slots, int size, winFlag* flags);
+bool win_logic(int* slots, int size, int flag)
 
 
 #endif // GLOBALS_H_INCLUDED
