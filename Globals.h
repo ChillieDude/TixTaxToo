@@ -129,7 +129,23 @@ private:
     std::string text;
 };
 
+
+
 //AI Functions
+
+enum winFlag
+{
+    TILE_TOP_LEFT = 0,
+    TILE_TOP_MIDDLE = 1,
+    TILE_TOP_RIGHT = 2,
+    TILE_CENTER_LEFT = 3,
+    TILE_CENTER_MIDDLE = 4,
+    TILE_CENTER_RIGHT = 5,
+    TILE_BOTTOM_LEFT= 6,
+    TILE_BOTTOM_MIDDLE = 7,
+    TILE_BOTTOM_RIGHT = 8,
+};
+
 bool IWin(char givenCharacter);
 bool winCondition(int* slots, int size, winFlag* flags);
 
