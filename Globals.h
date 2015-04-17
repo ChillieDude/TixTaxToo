@@ -48,6 +48,8 @@ extern const int TILE_W;
 extern const int TILE_H;
 extern const int TILE_TOTAL;
 
+
+
 extern bool isMyTurn;
 
 
@@ -58,6 +60,11 @@ bool LoadContent();
 void Close();
 void Play();
 void ComputersTurn();
+void Menu();
+
+void DrawBoard();
+void DrawMenu();
+void ResetGame();
 
 
 //Sprite Flags  : BEGIN
@@ -88,6 +95,7 @@ public:
     void SetChar(char c);
     void SetMark();
 
+    char CallC();
     bool isOpen();
 
     int GetY();
@@ -104,5 +112,26 @@ private:
 
 extern tTile tTiles[];
 extern SDL_Rect tLines[];
+
+
+class tButton
+{
+public:
+    tButton();
+
+    void HandleEvent(SDL_Event* e);
+    void SetLocation(int x, int y);
+    void Render();
+
+
+private:
+    SDL_Rect currentLocation;
+    std::string text;
+};
+
+//AI Functions
+bool IWin(char givenCharacter);
+bool winCondition(int* slots, int size, winFlag* flags);
+
 
 #endif // GLOBALS_H_INCLUDED
