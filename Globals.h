@@ -144,6 +144,7 @@ enum winFlag
     TILE_BOTTOM_LEFT= 6,
     TILE_BOTTOM_MIDDLE = 7,
     TILE_BOTTOM_RIGHT = 8,
+    TILE_TOTAL = 9
 };
 
 bool IWin(char givenCharacter);
