@@ -22,7 +22,7 @@ const int LINE_TOTAL = (ROWS_TOTAL - 1) * 2;
 
 const int TILE_W = (SCREEN_W - LINE_W * (LINE_TOTAL / 2) ) / ROWS_TOTAL;
 const int TILE_H = (SCREEN_H - LINE_W * (LINE_TOTAL / 2) ) / ROWS_TOTAL;
-const int TILE_TOTAL = ROWS_TOTAL * ROWS_TOTAL;
+
 
 SDL_Rect tLines[LINE_TOTAL];
 SDL_Rect tSprites[SPRITE_TOTAL];
