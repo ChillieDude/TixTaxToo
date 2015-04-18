@@ -147,7 +147,7 @@ enum winFlag
 };
 
 bool IWin(char givenCharacter);
-bool win_logic(int* slots, int size, int flag)
+bool win_logic(int* slots, int size, int flag);
 
 
 #endif // GLOBALS_H_INCLUDED

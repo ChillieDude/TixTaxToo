@@ -37,23 +37,26 @@ bool win_logic(int* slots, int size, int flag) {
 	int min = (row == 1 ? TILE_TOP_LEFT : row == 2 ? TILE_CENTER_LEFT : TILE_BOTTOM_LEFT);
 	int max = min + 2;
 
-	nums[0] = (flag-1 < min ? flag+1 : flag-1);
-	nums[1] = (flag-1 < min ? flag+2 : flag+1);
+	if(flag >= min) {
+		nums[0] = (flag-1 < min ? flag+1 : flag-1);
+		nums[1] = (flag-1 < min ? flag+2 : flag-2 < min ? flag+1 : flag-2);
 
-	f1 = false;
-	f2 = false;
+		f1 = false;
+		f2 = false;
 
-	for(int i = 0;i < size;i++) {
-		int slot = slots[i];
+		for(int i = 0;i < size;i++) {
+			int slot = slots[i];
 
-		if(slot == nums[0])
-			f1 = true;
-		else if(slot == nums[1])
-			f2 = true;
+			if(slot == nums[0])
+				f1 = true;
+			else if(slot == nums[1])
+				f2 = true;
+		}
+
+		if(f1 && f2) {
+			return true;
+		}
 	}
-
-	if(f1 && f2)
-		return true;
 
 	//diagonal
 
