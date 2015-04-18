@@ -8,7 +8,7 @@ bool win_logic(int* slots, int size, int flag) {
 
 	//up & down
 
-	int nums[2] = {(flag-3 < 0 ? flag+3 : flag-3), (flag-3 < 0 ? flag+6 : flag-6)};
+	int nums[2] = {(flag-3 < 0 ? flag+3 : flag-3), (flag-3 < 0 ? flag+6 : flag-6 < 0 ? flag+3 : flag-6)};
 
 	bool f1 = false;
 	bool f2 = false;
