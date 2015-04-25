@@ -7,12 +7,15 @@ SDL_Renderer* theRenderer = NULL;
 
 //We need a surface in order to load images - and then use a renderer to convert the surface into a texture
 SDL_Surface* theSurface = NULL;
+TTF_Font* theFont = NULL;
+SDL_Color textColor = {0, 255, 0};
 
 //init Screen Width and Height
 const int SCREEN_W = 640;
 const int SCREEN_H = 480;
 const int ROWS_TOTAL = 3;
-const int LINE_W = 10;
+const int LINE_W = 2;
+
 
 
 //Auto Updating Constants -----------
@@ -45,11 +48,12 @@ int main( int argc, char* args[] )
   {
         if( !LoadContent() )
         {
-            std::cout << "You need to configure SpriteSheet.bmp" << std::endl;
+            std::cout << "Content could not be loaded." << std::endl;
         }
         else
         {
              Play();
+
         }
 
   }
@@ -57,3 +61,5 @@ int main( int argc, char* args[] )
   Close();
   return 0;
 }
+
+
