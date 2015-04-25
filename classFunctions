@@ -1,0 +1,275 @@
+#include "Globals.h"
+
+/////////////////////////////////////
+////////   tTile Functions   ////////
+/////////////////////////////////////
+
+
+tTile::tTile() {
+	//Initialization
+	currentPosition.x = 0;
+	currentPosition.y = 0;
+	currentPosition.h = TILE_H;
+	currentPosition.w = TILE_W;
+
+	player = ' ';
+	marked = false;
+	currentSprite = SPRITE_NONE;
+}
+
+char tTile::CallC() {
+	return player;
+}
+
+void tTile::Reset() {
+	//Reset the Tile - (Reset game)
+	player = ' ';
+	marked = false;
+	currentSprite = SPRITE_NONE;
+}
+void tTile::SetMark() {
+	marked = true;
+}
+
+void tTile::SetChar(char c) {
+	player = c;
+}
+
+bool tTile::isOpen() {
+	return marked == false;
+}
+void tTile::SetSprite(tSpriteFlag newSprite) {
+	currentSprite = newSprite;
+}
+
+int tTile::GetW() {
+	return currentPosition.w;
+}
+
+int tTile::GetH() {
+	return currentPosition.h;
+}
+
+int tTile::GetX() {
+	return currentPosition.x;
+}
+
+int tTile::GetY() {
+	return currentPosition.y;
+}
+
+void tTile::SetLocation(int x, int y) {
+	currentPosition.x = x;
+	currentPosition.y = y;
+}
+
+void tTile::Render() {
+	theSpriteSheet.RenderX(&currentPosition, &tSprites[currentSprite]);
+}
+
+void tTile::HandleEvent(SDL_Event* event, Uint32& lastEvent) {
+
+	//If the last event was SDL_MOUSEBUTTONDOWN - And
+
+
+	//If our event relates to the mouse...
+	if(event->type == SDL_MOUSEMOTION || event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP) {
+		//We need to store - and fetch - the mouse coordinates for tests
+		int mouseX = 0, mouseY = 0;
+		SDL_GetMouseState(&mouseX, &mouseY);
+
+		//If Focus becomes true, that means the mouse is over the Tile
+		bool focus = false;
+
+		//If the MouseX is in between the X coordinates of the tile....
+		if(mouseX >= currentPosition.x && mouseX <= currentPosition.x + currentPosition.w) {
+			//AND... if the MouseY is in between the Y coordinates of the tile...
+			if(mouseY >= currentPosition.y && mouseY <= currentPosition.y + currentPosition.h) {
+				//Then... we set the focus to true (Time to handle Events)
+				focus = true;
+			}
+		}
+
+		//If The mouse is placed on the tTile : Handle the event!
+		if(focus == true) {
+			switch(event->type) {
+				case SDL_MOUSEMOTION:
+					//Only change the current sprite to SPRITE_OVER is the last event was NOT
+					if(lastEvent == SDL_MOUSEBUTTONDOWN) {
+						if(!marked) {
+							currentSprite = SPRITE_CLICK;
+						}
+
+					} else {
+						if(!marked) {
+							currentSprite = SPRITE_OVER;
+							lastEvent = SDL_MOUSEMOTION;
+						}
+
+					}
+
+
+					break;
+
+				case SDL_MOUSEBUTTONDOWN:
+					if(!marked) {
+						currentSprite = SPRITE_CLICK;
+					}
+
+					lastEvent = SDL_MOUSEBUTTONDOWN;
+					break;
+
+				case SDL_MOUSEBUTTONUP:
+					if(!marked) {
+						currentSprite = SPRITE_RELEASE;
+						marked = true;
+						isMyTurn = false;
+						player = 'X';
+					}
+
+					lastEvent = SDL_MOUSEBUTTONUP;
+					break;
+			}
+		} else //If the focus is not set on this tile...
+		{
+			//And if the tile has not been marked...
+			if(!marked) {
+				//Set the current sprite to "Blank"
+				currentSprite = SPRITE_NONE;
+			}
+
+		}
+	}
+}
+
+
+
+
+
+
+
+
+/////////////////////////////////////
+//////// tTexture Functions  ////////
+/////////////////////////////////////
+
+void tTexture::Render()
+{
+
+	SDL_RenderCopy(theRenderer, sTexture, NULL , &renderLocation);
+
+}
+
+void tTexture::SetLocation(int x, int y)
+{
+    renderLocation.x = x;
+    renderLocation.y = y;
+}
+int tTexture::GetHeight() {
+	return renderLocation.h;
+}
+
+int tTexture::GetWidth() {
+	return renderLocation.w;
+}
+
+int tTexture::GetY()
+{
+    return renderLocation.y;
+}
+
+int tTexture::GetX()
+{
+    return renderLocation.x;
+}
+
+void tTexture::RenderX(SDL_Rect* target, SDL_Rect* clip) {
+	//We pass two Rects to this function
+	//target is the Rectangle on the screen that you will occupy
+	//clip is the rectangle that you select a sprite from the sprite sheet
+	SDL_RenderCopy(theRenderer, sTexture, clip, target);
+}
+
+tTexture::tTexture() {
+	sTexture = NULL;
+    renderLocation.x = 0;
+    renderLocation.y = 0;
+    renderLocation.w = 0;
+    renderLocation.h = 0;
+}
+
+tTexture::~tTexture() {
+	Deallocate();
+}
+
+void tTexture::Deallocate() {
+	if(sTexture != NULL) {
+		SDL_DestroyTexture(sTexture);
+		sTexture = NULL;
+        renderLocation.x = 0;
+        renderLocation.y = 0;
+        renderLocation.h = 0;
+        renderLocation.w = 0;
+	}
+
+}
+
+bool tTexture::LoadText( const std::string text, const SDL_Color textColor, int fontSize)
+{
+    Deallocate();
+
+    theFont = TTF_OpenFont("8bitlim.ttf", fontSize);
+
+    theSurface = TTF_RenderText_Solid(theFont, text.c_str(), textColor);
+
+    if(theSurface == NULL)
+    {
+        std::cout << "Error in loading Text: " << TTF_GetError() << std::endl;
+    }
+    else
+    {
+        sTexture = SDL_CreateTextureFromSurface(theRenderer, theSurface);
+        renderLocation.w = theSurface->w;
+        renderLocation.h = theSurface->h;
+    }
+
+    SDL_FreeSurface(theSurface);
+    theSurface = NULL;
+    return sTexture != NULL;
+}
+
+bool tTexture::LoadImage(const std::string filename) {
+	//This function uses the surface to load an image, then create a texture out of it
+
+	Deallocate();
+
+	//Create a "Guinna Pig" texture
+	SDL_Texture* thePig = NULL;
+
+	//Load a BMP into theSurface. BMP Is the only file type that native SDL2 can import. W(e will have to add SDL2_image to import other formats)
+	theSurface = SDL_LoadBMP(filename.c_str()); //SDL_LoadBMP expects a ( char[] )
+
+	//Debug VV
+	if(theSurface == NULL) {
+		std::cout << "Could not Load image! : " << SDL_GetError() <<std::endl;
+	} else {
+		//theTexture = SDL_CreateTextureFromSurface(theRenderer, theSurface);
+		thePig = SDL_CreateTextureFromSurface(theRenderer, theSurface);
+
+		//Debug VV
+		if(thePig == NULL) {
+			std::cout << "Could not create texture! : " << SDL_GetError() <<std::endl;
+		}
+		//Set the height and width. -> ->(Remember that theSurface is a pointer)
+		renderLocation.w = theSurface->w;
+		renderLocation.h = theSurface->h;
+		//We are going to recycle our global "Surface"
+		SDL_FreeSurface(theSurface);
+		theSurface = NULL;
+	}
+
+
+	//Here is where we copy thePig into sTexture: If anything went wrong, thePig would have been NULL
+	sTexture = thePig;
+	return sTexture != NULL;
+}
